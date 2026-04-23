@@ -1,26 +1,27 @@
 #!/bin/bash
+set -e
+set -x
 
-echo "Stopping all VMs..."
+echo "Starting Azure Auto Shutdown..."
 
-# Stop all running VMs
-for vm in $(az vm list --query "[?powerState=='VM running'].id" -o tsv); do
+echo "Fetching VMs with autoShutdown=true tag..."
+
+vms=$(az vm list \
+  --query "[?tags.autoShutdown=='true'].id" -o tsv)
+
+for vm in $vms; do
+  echo "Stopping VM: $vm"
   az vm deallocate --ids $vm
 done
 
-echo "Stopping App Services..."
+echo "Fetching Web Apps with autoShutdown=true tag..."
 
-# Stop all Web Apps
-for app in $(az webapp list --query "[].id" -o tsv); do
+apps=$(az webapp list \
+  --query "[?tags.autoShutdown=='true'].id" -o tsv)
+
+for app in $apps; do
+  echo "Stopping App Service: $app"
   az webapp stop --ids $app
 done
 
-echo "Scaling AKS node pools to 0..."
-
-# Optional: AKS
-# az aks nodepool scale \
-#   --resource-group <RG> \
-#   --cluster-name <CLUSTER> \
-#   --name <NODEPOOL> \
-#   --node-count 0
-
-echo "Shutdown completed."
+echo "Shutdown completed successfully."
