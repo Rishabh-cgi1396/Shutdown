@@ -1,0 +1,24 @@
+name: Azure Auto Shutdown
+
+on:
+  schedule:
+    - cron: '30 14 * * *'  # 8 PM IST (UTC+5:30)
+  workflow_dispatch:
+
+jobs:
+  shutdown:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Run Shutdown Script
+        run: bash scripts/shutdown.sh
